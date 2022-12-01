@@ -9,7 +9,7 @@ fn main() -> Result<()> {
     let mut sums: Vec<i64> = nonempty_groups
         .map(|g| g.map(|l| l.parse::<i64>()).fold_ok(0, |a, b| a + b))
         .try_collect()?;
-    sums.select_nth_unstable_by_key(3, |s| std::cmp::Reverse(*s));
+    sums.select_nth_unstable_by_key(2, |s| std::cmp::Reverse(*s));
     println!("time: {:?}", start.elapsed());
     println!("part1: {}", sums[..3].iter().copied().max().unwrap_or(0));
     println!("part2: {}", sums[..3].iter().copied().sum::<i64>());
