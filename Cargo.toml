@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.66"
+bytemuck = "1.12.3"
 itertools = "0.10.5"
 regex = "1.7.0"
