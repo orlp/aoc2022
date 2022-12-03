@@ -2,14 +2,12 @@ use anyhow::{Ok, Result};
 use itertools::Itertools;
 
 fn rucksack_bitset(rucksack: &str) -> u64 {
-    rucksack
-        .bytes()
-        .map(|item| match item {
-            b'a'..=b'z' => 1u64 << (item - b'a' + 1),
-            b'A'..=b'Z' => 1u64 << (item - b'A' + 27),
-            _ => panic!("unknown item"),
-        })
-        .fold(0, |a, b| a | b)
+    let priorities = rucksack.bytes().map(|item| match item {
+        b'a'..=b'z' => item - b'a' + 1,
+        b'A'..=b'Z' => item - b'A' + 27,
+        _ => panic!("unknown item"),
+    });
+    priorities.map(|p| 1u64 << p).fold(0, |a, b| a | b)
 }
 
 fn main() -> Result<()> {
