@@ -17,13 +17,10 @@ fn main() -> Result<()> {
     let start = std::time::Instant::now();
     let part1_common = input.lines().map(|line| {
         let (a, b) = line.split_at(line.len() / 2);
-        let [ap, bp] = [a, b].map(rucksack_bitset);
-        (ap & bp).trailing_zeros()
+        (rucksack_bitset(a) & rucksack_bitset(b)).trailing_zeros()
     });
-    let part2_common = input.lines().tuples().map(|(a, b, c)| {
-        let [ap, bp, cp] = [a, b, c].map(rucksack_bitset);
-        (ap & bp & cp).trailing_zeros()
-    });
+    let part2_groups = input.lines().map(rucksack_bitset).tuples();
+    let part2_common = part2_groups.map(|(a, b, c)| (a & b & c).trailing_zeros());
     println!("time: {:?}", start.elapsed());
     println!("part1: {}", part1_common.sum::<u32>());
     println!("part2: {}", part2_common.sum::<u32>());
