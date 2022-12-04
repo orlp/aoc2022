@@ -10,9 +10,9 @@ fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day02.txt")?;
     let start = std::time::Instant::now();
 
-    let re = Regex::new("([ABC]) ([XYZ])")?;
     let mut part1 = 0;
     let mut part2 = 0;
+    let re = Regex::new("([ABC]) ([XYZ])")?;
     for line in input.lines() {
         let [abc, xyz] = re.extract(line).context("invalid strategy")?.1;
         let [abc, xyz] = [abc.as_bytes()[0] - b'A', xyz.as_bytes()[0] - b'X'];

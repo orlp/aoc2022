@@ -5,10 +5,10 @@ use regex::Regex;
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day04.txt")?;
     let start = std::time::Instant::now();
-    let re = Regex::new(r"(\d+)-(\d+),(\d+)-(\d+)")?;
 
     let mut part1 = 0;
     let mut part2 = 0;
+    let re = Regex::new(r"(\d+)-(\d+),(\d+)-(\d+)")?;
     for line in input.lines() {
         let assignment = re.extract(line).context("invalid assignment")?.1;
         let [s1, e1, s2, e2] = assignment.map(|id| id.parse::<u64>().unwrap());
