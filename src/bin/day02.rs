@@ -9,6 +9,7 @@ use regex::Regex;
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day02.txt")?;
     let start = std::time::Instant::now();
+
     let re = Regex::new("([ABC]) ([XYZ])")?;
     let mut part1 = 0;
     let mut part2 = 0;
@@ -20,6 +21,7 @@ fn main() -> Result<()> {
         part1 += (1 + xyz + 3 * p1_outcome) as u64;
         part2 += (1 + p2_shape + 3 * xyz) as u64;
     }
+
     println!("time: {:?}", start.elapsed());
     println!("part1: {part1}");
     println!("part2: {part2}");

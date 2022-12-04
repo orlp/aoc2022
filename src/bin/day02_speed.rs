@@ -23,6 +23,7 @@ use anyhow::{Ok, Result};
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day02.txt")?;
     let start = std::time::Instant::now();
+
     let ints: &[u32] = bytemuck::cast_slice(input.as_bytes());
     let mut part1 = ints.len() as u32;
     let mut part2 = ints.len() as u32;
@@ -31,6 +32,7 @@ fn main() -> Result<()> {
         part1 += (*u == 173678658) as u32 + ((475903013 >> o) & 7);
         part2 += (*u == 173678658) as u32 + ((224201846 >> o) & 7);
     }
+
     println!("time: {:?}", start.elapsed());
     println!("part1: {part1}");
     println!("part2: {part2}");
