@@ -16,8 +16,8 @@ fn main() -> Result<()> {
         part2 += (s1 <= e2 && s2 <= e1) as u64;
     }
 
-    println!("time: {:?}", start.elapsed());
     println!("part1: {part1}");
     println!("part2: {part2}");
+    println!("time: {:?}", start.elapsed());
     Ok(())
 }

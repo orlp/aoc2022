@@ -33,8 +33,9 @@ fn main() -> Result<()> {
         part2 += (*u == 173678658) as u32 + ((224201846 >> o) & 7);
     }
 
-    println!("time: {:?}", start.elapsed());
+    let time = start.elapsed();
     println!("part1: {part1}");
     println!("part2: {part2}");
+    println!("time: {:?}", time);
     Ok(())
 }

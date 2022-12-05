@@ -12,8 +12,8 @@ fn main() -> Result<()> {
         .try_collect()?;
     sums.select_nth_unstable_by_key(2, |s| std::cmp::Reverse(*s));
 
-    println!("time: {:?}", start.elapsed());
     println!("part1: {}", sums[..3].iter().copied().max().unwrap_or(0));
     println!("part2: {}", sums[..3].iter().copied().sum::<i64>());
+    println!("time: {:?}", start.elapsed());
     Ok(())
 }

@@ -22,8 +22,8 @@ fn main() -> Result<()> {
         part2 += (1 + p2_shape + 3 * xyz) as u64;
     }
 
-    println!("time: {:?}", start.elapsed());
     println!("part1: {part1}");
     println!("part2: {part2}");
+    println!("time: {:?}", start.elapsed());
     Ok(())
 }

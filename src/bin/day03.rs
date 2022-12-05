@@ -21,8 +21,8 @@ fn main() -> Result<()> {
     let part2_groups = input.lines().map(rucksack_bitset).tuples();
     let part2_common = part2_groups.map(|(a, b, c)| (a & b & c).trailing_zeros());
 
-    println!("time: {:?}", start.elapsed());
     println!("part1: {}", part1_common.sum::<u32>());
     println!("part2: {}", part2_common.sum::<u32>());
+    println!("time: {:?}", start.elapsed());
     Ok(())
 }
