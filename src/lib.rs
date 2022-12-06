@@ -1,10 +1,13 @@
-use regex::{Regex, CaptureMatches, Captures};
+use regex::{CaptureMatches, Captures, Regex};
 
 fn extract_from_capture<'t, const N: usize>(caps: Captures<'t>) -> (&'t str, [&'t str; N]) {
     let mut participating = caps.iter().flatten();
     let whole_match = participating.next().unwrap().as_str();
     let captured = [0; N].map(|_| participating.next().unwrap().as_str());
-    assert!(participating.next().is_none(), "too many participating capture groups");
+    assert!(
+        participating.next().is_none(),
+        "too many participating capture groups"
+    );
     (whole_match, captured)
 }
 
@@ -33,61 +36,60 @@ pub trait RegexExtract {
     /// Panics if the number of participating captures is not equal to N.
     fn extract<'t, const N: usize>(&self, text: &'t str) -> Option<(&'t str, [&'t str; N])>;
 
-    fn extract_iter<'r, 't, const N: usize>(&'r self, text: &'t str) -> RegexExtractIter<'r, 't, N>;
+    fn extract_iter<'r, 't, const N: usize>(&'r self, text: &'t str)
+        -> RegexExtractIter<'r, 't, N>;
 }
 
 impl RegexExtract for Regex {
     fn extract<'t, const N: usize>(&self, text: &'t str) -> Option<(&'t str, [&'t str; N])> {
         self.captures(text).map(extract_from_capture)
     }
-    
-    fn extract_iter<'r, 't, const N: usize>(&'r self, text: &'t str) -> RegexExtractIter<'r, 't, N> {
-        RegexExtractIter { captures: self.captures_iter(text) }
+
+    fn extract_iter<'r, 't, const N: usize>(
+        &'r self,
+        text: &'t str,
+    ) -> RegexExtractIter<'r, 't, N> {
+        RegexExtractIter {
+            captures: self.captures_iter(text),
+        }
     }
 }
 
 pub trait GetDisjointMut {
     type Item;
 
-    fn get_disjoint_mut<const N: usize>(&mut self, idxs: [usize; N]) -> Option<[&mut Self::Item; N]>;
+    fn get_disjoint_mut<const N: usize>(
+        &mut self,
+        idxs: [usize; N],
+    ) -> Option<[&mut Self::Item; N]>;
 }
 
 impl<T> GetDisjointMut for [T] {
     type Item = T;
 
-    fn get_disjoint_mut<const N: usize>(&mut self, idxs: [usize; N]) -> Option<[&mut Self::Item; N]> {
-        if idxs.iter().any(|i| *i >= self.len()) {
-            return None;
+    fn get_disjoint_mut<const N: usize>(
+        &mut self,
+        idxs: [usize; N],
+    ) -> Option<[&mut Self::Item; N]> {
+        // Check all in range and disjoint.
+        let mut valid = true;
+        if N > 10 {
+            let mut sorted = idxs;
+            sorted.sort_unstable();
+            valid &= idxs[N - 1] < self.len();
+            for i in 1..N {
+                valid &= idxs[i - 1] != idxs[i];
+            }
+        } else {
+            for i in 0..N {
+                valid &= idxs[i] < self.len();
+                for j in 0..i {
+                    valid &= idxs[i] != idxs[j];
+                }
+            }
         }
-
-        // Check all disjoint.
-        let disjoint = match N {
-            0..=1 => true,
-            2 => idxs[0] != idxs[1],
-            3 => idxs[0] != idxs[1] && idxs[1] != idxs[2] && idxs[0] != idxs[2],
-            4..=8 => {
-                for i in 1..N {
-                    for j in 0..i {
-                        if idxs[i] == idxs[j] {
-                            return None;
-                        }
-                    }
-                }
-                true
-            }
-            _ => {
-                let mut sorted = idxs;
-                sorted.sort_unstable();
-                for i in 1..N {
-                    if idxs[i-1] == idxs[i] {
-                        return None;
-                    }
-                }
-                true
-            }
-        };
-
+        
         let p = self.as_mut_ptr();
-        disjoint.then(|| idxs.map(|i| unsafe { &mut *p.add(i) }))
+        valid.then(|| idxs.map(|i| unsafe { &mut *p.add(i) }))
     }
 }
