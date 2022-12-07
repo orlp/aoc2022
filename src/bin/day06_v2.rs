@@ -16,10 +16,10 @@ fn find_disjoint_window(s: &[u8], n: usize) -> Option<usize> {
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day06.txt")?;
     let start = std::time::Instant::now();
+    
+    let p1 = find_disjoint_window(input.trim().as_bytes(), 4);
+    let p2 = find_disjoint_window(input.trim().as_bytes(), 14);
 
-    let bytes = input.trim().as_bytes();
-    let p1 = find_disjoint_window(bytes, 4);
-    let p2 = find_disjoint_window(bytes, 14);
     println!("part1: {}", p1.context("marker not found")?);
     println!("part2: {}", p2.context("marker not found")?);
     println!("time: {:?}", start.elapsed());
