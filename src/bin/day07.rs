@@ -16,8 +16,9 @@ struct Directory<'a> {
 fn update_size(k: DirKey, sm: &DirMap<'_>, sizes: &mut DirSizeMap) -> u64 {
     let child_keys = sm[k].children.values();
     let subtree_size: u64 = child_keys.map(|c| update_size(*c, sm, sizes)).sum();
-    sizes[k] = subtree_size + sm[k].files.iter().map(|(_, sz)| sz).sum::<u64>();
-    sizes[k]
+    let files_size: u64 = sm[k].files.iter().map(|(_, sz)| sz).sum::<u64>();
+    sizes.insert(k, subtree_size + files_size);
+    subtree_size + files_size
 }
 
 fn main() -> Result<()> {
