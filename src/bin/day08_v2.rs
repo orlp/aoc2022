@@ -43,9 +43,9 @@ fn main() -> Result<()> {
     let grid = input.lines().flat_map(|l| l.trim().bytes()).collect_vec();
     let w = input.lines().next().context("no input")?.trim().len();
     let h = grid.len() / w;
-    let left = view(&grid, 0, w - 1, h, 1, w);
-    let right = view(&grid, w - 1, 0, h, 1, w);
+    let right = view(&grid, 0, w - 1, h, 1, w);
     let down = view(&grid, 0, h - 1, w, w, 1);
+    let left = view(&grid, w - 1, 0, h, 1, w);
     let up = view(&grid, h - 1, 0, w, w, 1);
     let part1 = izip!(&left, &right, &down, &up).filter(|(l, r, d, u)| l.1 | r.1 | d.1 | u.1);
     let part2 = izip!(&left, &right, &down, &up).map(|(l, r, u, d)| l.0 * r.0 * d.0 * u.0);
