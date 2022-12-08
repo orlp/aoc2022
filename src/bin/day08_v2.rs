@@ -12,23 +12,26 @@ use itertools::{izip, Itertools};
 /// their viewing distance). After doing this the new tree is the smallest tree
 /// and can thus be pushed on the stack. Any trees remaining on the stack at the
 /// end are viewable from the edge at the row start.
-fn view(grid: &[u8], x1: usize, xn: usize, h: usize, xs: usize, ys: usize) -> Vec<(usize, bool)> {
-    let mut result = vec![(0, false); grid.len()];
-    let mut stack = Vec::new();
+fn view(grid: &[u8], x1: usize, xn: usize, h: usize, xs: usize, ys: usize) -> Vec<(u64, bool)> {
     let dx = if x1 < xn { 1 } else { -1 };
     let tree = |xi, y| grid[(x1 + (dx * xi) as usize) * xs + y * ys];
+
+    let mut result = vec![(0, false); grid.len()];
+    let mut stack = Vec::new();
     for y in 0..h {
         for xi in (0..(1 + x1.abs_diff(xn) as i64)).rev() {
             while stack.last().map(|xj| tree(xi, y) >= tree(*xj, y)).unwrap_or(false) {
                 let xj = stack.pop().unwrap();
-                result[(x1 + (dx * xj) as usize) * xs + y * ys] = (xj.abs_diff(xi) as usize, false);
+                result[(x1 + (dx * xj) as usize) * xs + y * ys] = (xj.abs_diff(xi), false);
             }
             stack.push(xi);
         }
+
         for xi in stack.drain(..) {
-            result[(x1 + (dx * xi) as usize) * xs + y * ys] = (xi as usize, true);
+            result[(x1 + (dx * xi) as usize) * xs + y * ys] = (xi.unsigned_abs(), true);
         }
     }
+
     result
 }
 
