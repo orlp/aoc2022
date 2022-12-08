@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use itertools::{izip, Itertools};
 
 /// Computes how many trees we can see in direction x1, ..., xn for all y=0..h
-/// in grid using given strides xs, xy, as well as whether this tree can be seen
+/// in grid using given strides xs, ys, as well as whether this tree can be seen
 /// from the edge of the grid in this direction.
 ///
 /// For each row we maintain a stack of tree indices in strictly descending
