@@ -14,21 +14,22 @@ use itertools::{izip, Itertools};
 /// end are viewable from the edge at the row start.
 fn view(grid: &[u8], x1: usize, xn: usize, h: usize, xs: usize, ys: usize) -> Vec<(u64, bool)> {
     let dx = if x1 < xn { 1 } else { -1 };
-    let tree = |xi, y| grid[(x1 + (dx * xi) as usize) * xs + y * ys];
-
     let mut result = vec![(0, false); grid.len()];
+    let mut store_result = |xi, y, r| result[(x1 + (dx * xi) as usize) * xs + y * ys] = r;
+    let height = |xi, y| grid[(x1 + (dx * xi) as usize) * xs + y * ys];
+
     let mut stack = Vec::new();
     for y in 0..h {
         for xi in (0..(1 + x1.abs_diff(xn) as i64)).rev() {
-            while stack.last().map(|xj| tree(xi, y) >= tree(*xj, y)).unwrap_or(false) {
+            while stack.last().map(|xj| height(xi, y) >= height(*xj, y)).unwrap_or(false) {
                 let xj = stack.pop().unwrap();
-                result[(x1 + (dx * xj) as usize) * xs + y * ys] = (xj.abs_diff(xi), false);
+                store_result(xj, y, (xj.abs_diff(xi), false));
             }
             stack.push(xi);
         }
 
         for xi in stack.drain(..) {
-            result[(x1 + (dx * xi) as usize) * xs + y * ys] = (xi.unsigned_abs(), true);
+            store_result(xi, y, (xi.unsigned_abs(), true));
         }
     }
 
