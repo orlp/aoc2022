@@ -1,19 +1,19 @@
 use anyhow::{Context, Result};
 use itertools::{izip, Itertools};
 
-/// Computes how many trees we can see in direction x0, x1, ..., xn for all
-/// y=0..h in grid using given strides xs, xy, as well as whether this tree can
-/// be seen from the edge of the grid in this direction.
-fn view(grid: &[u8], x0: usize, xn: usize, h: usize, xs: usize, ys: usize) -> Vec<(usize, bool)> {
+/// Computes how many trees we can see in direction x1, ..., xn for all y=0..h
+/// in grid using given strides xs, xy, as well as whether this tree can be seen
+/// from the edge of the grid in this direction.
+fn view(grid: &[u8], x1: usize, xn: usize, h: usize, xs: usize, ys: usize) -> Vec<(usize, bool)> {
     let mut result = vec![(0, false); grid.len()];
-    let dx = if x0 < xn { 1 } else { -1 };
-    let tree = |xi, y| grid[(x0 + (dx * xi) as usize) * xs + y * ys];
+    let dx = if x1 < xn { 1 } else { -1 };
+    let tree = |xi, y| grid[(x1 + (dx * xi) as usize) * xs + y * ys];
     for y in 0..h {
-        for xi in 0..(1 + x0.abs_diff(xn) as i64) {
+        for xi in 0..(1 + x1.abs_diff(xn) as i64) {
             let smaller_trees = (0..xi).rev().take_while(|xj| tree(*xj, y) < tree(xi, y)).count();
             let blocked = xi > smaller_trees as i64;
-            result[(x0 + (dx * xi) as usize) * xs + y * ys] =
-                (smaller_trees + blocked as usize, !blocked);
+            let x = x1 + (dx * xi) as usize;
+            result[x * xs + y * ys] = (smaller_trees + blocked as usize, !blocked);
         }
     }
     result
