@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use anyhow::{bail, Context, Ok, Result};
 use slotmap::{new_key_type, SecondaryMap, SlotMap};

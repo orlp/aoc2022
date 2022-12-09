@@ -1,14 +1,13 @@
-use std::collections::HashSet;
-
 use anyhow::{Context, Result};
+use hashbrown::HashSet;
 
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day09.txt")?;
     let start = std::time::Instant::now();
 
-    let mut rope = [[0i64; 2]; 10];
-    let mut part1_visited = HashSet::new();
-    let mut part2_visited = HashSet::new();
+    let mut rope = [[0i32; 2]; 10];
+    let mut part1_visited: HashSet<_> = HashSet::with_capacity(2048);
+    let mut part2_visited: HashSet<_> = HashSet::with_capacity(2048);
     for line in input.lines() {
         let (dir, n) = line.split_once(' ').context("bad input")?;
         let delta = match dir.trim() {
