@@ -6,7 +6,7 @@ fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day09.txt")?;
     let start = std::time::Instant::now();
 
-    let mut rope = [[0i64; 2]; 10];
+    let mut rope = [[0i32; 2]; 10];
     let mut part1_visited = HashSet::new();
     let mut part2_visited = HashSet::new();
     for line in input.lines() {
