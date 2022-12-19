@@ -1,5 +1,5 @@
 use anyhow::{Ok, Result};
-use aoc2022::{RegexExtract, OptionSomeExt};
+use aoc2022::{OptionSomeExt, RegexExtract};
 use regex::Regex;
 
 fn main() -> Result<()> {
