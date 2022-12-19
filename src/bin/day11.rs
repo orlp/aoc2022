@@ -1,8 +1,9 @@
+use std::collections::VecDeque;
+
 use anyhow::{Ok, Result};
 use aoc2022::RegexExtract;
 use itertools::Itertools;
 use regex::Regex;
-use std::collections::VecDeque;
 
 const MONKEY_FORMAT: &'static str = r"Monkey \d+:
 \s*Starting items: (\d+(?:, \d+)*)

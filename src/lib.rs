@@ -1,15 +1,14 @@
 use core::panic::Location;
-use regex::{CaptureMatches, Captures, Regex};
+use std::cmp::Ordering;
 use std::fmt;
+
+use regex::{CaptureMatches, Captures, Regex};
 
 fn extract_from_capture<'t, const N: usize>(caps: Captures<'t>) -> (&'t str, [&'t str; N]) {
     let mut participating = caps.iter().flatten();
     let whole_match = participating.next().unwrap().as_str();
     let captured = [0; N].map(|_| participating.next().unwrap().as_str());
-    assert!(
-        participating.next().is_none(),
-        "too many participating capture groups"
-    );
+    assert!(participating.next().is_none(), "too many participating capture groups");
     (whole_match, captured)
 }
 
@@ -128,3 +127,26 @@ impl<T> OptionSomeExt for Option<T> {
         }
     }
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct Priority<P, T>(pub P, pub T);
+
+impl<P: Ord + Eq, T> Ord for Priority<P, T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+impl<P: Ord + Eq, T> PartialOrd for Priority<P, T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<P: Eq, T> PartialEq for Priority<P, T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<P: Eq, T> Eq for Priority<P, T> { }
