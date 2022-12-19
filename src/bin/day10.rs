@@ -7,7 +7,7 @@ fn main() -> Result<()> {
     let mut value = 1;
     let mut cycle = 0;
     let mut part1 = 0;
-    let mut part2 = String::with_capacity(40*6);
+    let mut part2 = String::with_capacity(41*6);
     for line in input.lines() {
         let (cycles, inc) = match line.trim().split_once(' ').unwrap_or((line, "")) {
             ("noop", "") => (1, 0),
