@@ -20,30 +20,28 @@ const GEODE: usize = 3;
 
 #[derive(Debug)]
 struct Blueprint {
-    ore_costs: [u16; 4],
-    max_ore_cost: u16,
-    obsidian_clay_cost: u16,
-    geode_obsidian_cost: u16,
+    ore_costs: [u32; 4],
+    max_ore_cost: u32,
+    obsidian_clay_cost: u32,
+    geode_obsidian_cost: u32,
 }
 
 impl Blueprint {
-    pub fn best_num_geodes(&self, minutes: u16) -> u16 {
+    pub fn best_num_geodes(&self, minutes: u32) -> u32 {
         let mut best = 0;
         let mut executions = BinaryHeap::new();
         executions.push(Priority(0, Execution::new()));
         let mut seen = HashSet::new();
         while let Some(ex) = executions.pop() {
-            let choices = (0..4).map(|r| ex.1.build_robot(r, self)).flatten();
+            let choices = (0..4).map(|r| ex.1.build_robot(r, self, minutes)).flatten();
             for next in choices {
                 let upper_bound = next.geode_upper_bound(self, minutes);
-                if next.minutes > minutes || upper_bound < best {
-                    continue;
-                }
-
-                best = best.max(next.geode_lower_bound(self, minutes));
-                if next.minutes < minutes && !seen.contains(&next) {
-                    seen.insert(next.clone());
-                    executions.push(Priority(upper_bound, next));
+                if upper_bound > best {
+                    best = best.max(next.geode_lower_bound(self, minutes));
+                    if next.minutes < minutes && !seen.contains(&next) {
+                        seen.insert(next.clone());
+                        executions.push(Priority(upper_bound, next));
+                    }
                 }
             }
         }
@@ -53,9 +51,9 @@ impl Blueprint {
 
 #[derive(Clone, Hash, Eq, PartialEq)]
 struct Execution {
-    robots: [u16; 4],
-    resources: [u16; 4],
-    minutes: u16,
+    robots: [u32; 4],
+    resources: [u32; 4],
+    minutes: u32,
 }
 
 impl Execution {
@@ -69,7 +67,7 @@ impl Execution {
 
     // Computes how many resources we mine given initial robots and assuming we
     // build an extra robot each minute for the first extra_robots minutes.
-    fn max_mining(&self, resource: usize, extra_robots: u16, time_left: u16) -> u16 {
+    fn max_mining(&self, resource: usize, extra_robots: u32, time_left: u32) -> u32 {
         let b = self.robots[resource];
         let x = extra_robots.min(time_left);
         // b + (b + 1) + (b + 2) + ... + (b + x - 1) + (b + x) + ... + (b + x)
@@ -77,14 +75,14 @@ impl Execution {
         self.resources[resource] + x * (2 * b + x - 1) / 2 + (b + x) * (time_left - x)
     }
 
-    pub fn geode_lower_bound(&self, bp: &Blueprint, max_minutes: u16) -> u16 {
+    pub fn geode_lower_bound(&self, bp: &Blueprint, max_minutes: u32) -> u32 {
         assert!(self.minutes <= max_minutes);
         let ore_afford = self.resources[ORE] / bp.ore_costs[GEODE];
         let obs_afford = self.resources[OBSIDIAN] / bp.geode_obsidian_cost;
         self.max_mining(GEODE, ore_afford.min(obs_afford), max_minutes - self.minutes)
     }
 
-    pub fn geode_upper_bound(&self, bp: &Blueprint, max_minutes: u16) -> u16 {
+    pub fn geode_upper_bound(&self, bp: &Blueprint, max_minutes: u32) -> u32 {
         // Let's first upper bound how much ore we could ultimately have, by
         // assuming we could go into debt, and always building ore machines if
         // they'd pay off for themselves, which is after cost + 1 minutes.
@@ -98,7 +96,8 @@ impl Execution {
         self.max_mining(GEODE, max_obsidian / bp.geode_obsidian_cost, m)
     }
 
-    pub fn build_robot(&self, resource: usize, bp: &Blueprint) -> Option<Execution> {
+    pub fn build_robot(&self, resource: usize, bp: &Blueprint, max_minutes: u32) -> Option<Execution> {
+        // Don't build if we're already gathering enough to sustain the factory.
         if resource == ORE && self.robots[ORE] >= bp.max_ore_cost
             || resource == CLAY && self.robots[CLAY] >= bp.obsidian_clay_cost
             || resource == OBSIDIAN && self.robots[OBSIDIAN] >= bp.geode_obsidian_cost
@@ -108,8 +107,8 @@ impl Execution {
 
         let costs = [
             bp.ore_costs[resource],
-            bp.obsidian_clay_cost * (resource == OBSIDIAN) as u16,
-            bp.geode_obsidian_cost * (resource == GEODE) as u16,
+            bp.obsidian_clay_cost * (resource == OBSIDIAN) as u32,
+            bp.geode_obsidian_cost * (resource == GEODE) as u32,
         ];
         let [ore_t, clay_t, obs_t] = [ORE, CLAY, OBSIDIAN].map(|r| {
             let resources_needed = costs[r].saturating_sub(self.resources[r]);
@@ -126,7 +125,7 @@ impl Execution {
         }
         ret.minutes += mins;
         ret.robots[resource] += 1;
-        Some(ret)
+        (ret.minutes <= max_minutes).then_some(ret)
     }
 }
 
