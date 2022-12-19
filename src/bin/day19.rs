@@ -1,7 +1,7 @@
 use std::collections::BinaryHeap;
 
 use anyhow::{Ok, Result};
-use aoc2022::{RegexExtract, Priority};
+use aoc2022::{Priority, RegexExtract};
 use hashbrown::HashSet;
 use itertools::Itertools;
 use regex::Regex;
@@ -21,6 +21,7 @@ const GEODE: usize = 3;
 #[derive(Debug)]
 struct Blueprint {
     ore_costs: [u16; 4],
+    max_ore_cost: u16,
     obsidian_clay_cost: u16,
     geode_obsidian_cost: u16,
 }
@@ -38,7 +39,7 @@ impl Blueprint {
                 if next.minutes > minutes || upper_bound < best {
                     continue;
                 }
-                
+
                 best = best.max(next.geode_lower_bound(self, minutes));
                 if next.minutes < minutes && !seen.contains(&next) {
                     seen.insert(next.clone());
@@ -73,7 +74,7 @@ impl Execution {
         let x = extra_robots.min(time_left);
         // b + (b + 1) + (b + 2) + ... + (b + x - 1) + (b + x) + ... + (b + x)
         //       x*(2b + x - 1) / 2                  |    (b + x) * (m - x)
-        self.resources[resource] + x * (2*b + x - 1) / 2 + (b + x) * (time_left - x)
+        self.resources[resource] + x * (2 * b + x - 1) / 2 + (b + x) * (time_left - x)
     }
 
     pub fn geode_lower_bound(&self, bp: &Blueprint, max_minutes: u16) -> u16 {
@@ -98,6 +99,13 @@ impl Execution {
     }
 
     pub fn build_robot(&self, resource: usize, bp: &Blueprint) -> Option<Execution> {
+        if resource == ORE && self.robots[ORE] >= bp.max_ore_cost
+            || resource == CLAY && self.robots[CLAY] >= bp.obsidian_clay_cost
+            || resource == OBSIDIAN && self.robots[OBSIDIAN] >= bp.geode_obsidian_cost
+        {
+            return None;
+        }
+
         let costs = [
             bp.ore_costs[resource],
             bp.obsidian_clay_cost * (resource == OBSIDIAN) as u16,
@@ -131,8 +139,10 @@ fn main() -> Result<()> {
         .extract_iter(&input)
         .map(|(_, bp)| {
             let [_id, ore, clay, obs_ore, obs, geo_ore, geo] = bp.map(str::parse);
+            let ore_costs = [ore?, clay?, obs_ore?, geo_ore?];
             Ok(Blueprint {
-                ore_costs: [ore?, clay?, obs_ore?, geo_ore?],
+                ore_costs,
+                max_ore_cost: ore_costs[0].max(ore_costs[1]).max(ore_costs[2]).max(ore_costs[3]),
                 obsidian_clay_cost: obs?,
                 geode_obsidian_cost: geo?,
             })
