@@ -1,5 +1,5 @@
-use anyhow::{Context, Ok, Result};
-use aoc2022::RegexExtract;
+use anyhow::{Ok, Result};
+use aoc2022::{RegexExtract, OptionSomeExt};
 use regex::Regex;
 
 // 0 = Rock, 1 = Paper, 2 = Scissor, (k + 1) mod 3 thus defeats k.
@@ -14,7 +14,7 @@ fn main() -> Result<()> {
     let mut part2 = 0;
     let re = Regex::new("([ABC]) ([XYZ])")?;
     for line in input.lines() {
-        let [abc, xyz] = re.extract(line).context("invalid strategy")?.1;
+        let [abc, xyz] = re.extract(line).some()?.1;
         let [abc, xyz] = [abc.as_bytes()[0] - b'A', xyz.as_bytes()[0] - b'X'];
         let p1_outcome = (1 + xyz + (3 - abc)) % 3;
         let p2_shape = (xyz + abc + (3 - 1)) % 3;

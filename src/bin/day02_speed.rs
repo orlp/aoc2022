@@ -4,7 +4,7 @@ use anyhow::{Ok, Result};
     We use the fact that each line (including the newline) consists of 4 bytes.
     We add to the part1, part2 scores based on this lookup table:
 
-    Input     I+\n as u32  p1   p2  
+    Input     I+\n as u32  p1   p2
         A X    173547585,   4,   3
         A Y    173613121,   8,   4
         A Z    173678657,   3,   8

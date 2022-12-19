@@ -1,6 +1,6 @@
 use anyhow::Result;
 use itertools::Itertools;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -30,7 +30,8 @@ fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day13.txt")?;
     let start = std::time::Instant::now();
 
-    let packets: Vec<Packet> = input.lines().filter(|s| s.trim().len() > 0).map(serde_json::from_str).try_collect()?;
+    let nonempty = input.lines().filter(|s| s.trim().len() > 0);
+    let packets: Vec<Packet> = nonempty.map(serde_json::from_str).try_collect()?;
     let correct_positions = packets.iter().tuples().positions(|(a, b)| a < b);
     let tworank = packets.iter().filter(|p| **p < Packet::Int(2)).count() + 1;
     let sixrank = packets.iter().filter(|p| **p < Packet::Int(6)).count() + 2;

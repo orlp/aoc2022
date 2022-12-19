@@ -21,7 +21,7 @@ fn view(grid: &[u8], x1: usize, xn: usize, h: usize, xs: usize, ys: usize) -> Ve
     let mut stack = Vec::new();
     for y in 0..h {
         for xi in (0..(1 + x1.abs_diff(xn) as i64)).rev() {
-            while stack.last().map(|xj| height(xi, y) >= height(*xj, y)).unwrap_or(false) {
+            while let Some(true) = stack.last().map(|xj| height(xi, y) >= height(*xj, y)) {
                 let xj = stack.pop().unwrap();
                 store_result(xj, y, (xj.abs_diff(xi), false));
             }

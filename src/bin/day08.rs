@@ -10,10 +10,11 @@ fn view(grid: &[u8], x1: usize, xn: usize, h: usize, xs: usize, ys: usize) -> Ve
     let tree = |xi, y| grid[(x1 + (dx * xi) as usize) * xs + y * ys];
     for y in 0..h {
         for xi in 0..(1 + x1.abs_diff(xn) as i64) {
-            let smaller_trees = (0..xi).rev().take_while(|xj| tree(*xj, y) < tree(xi, y)).count();
-            let blocked = xi > smaller_trees as i64;
+            let smaller = (0..xi).rev().take_while(|xj| tree(*xj, y) < tree(xi, y));
+            let num_smaller = smaller.count();
+            let blocked = xi > num_smaller as i64;
             let x = x1 + (dx * xi) as usize;
-            result[x * xs + y * ys] = (smaller_trees + blocked as usize, !blocked);
+            result[x * xs + y * ys] = (num_smaller + blocked as usize, !blocked);
         }
     }
     result

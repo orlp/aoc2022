@@ -1,11 +1,12 @@
-use anyhow::{bail, Context, Ok, Result};
+use anyhow::{bail, Ok, Result};
+use aoc2022::OptionSomeExt;
 use hashbrown::HashSet;
 use itertools::Itertools;
 use std::collections::VecDeque;
 
 fn bfs(grid: &[u8], width: usize, start: u8, target: u8, forwards: bool) -> Result<usize> {
     let height = grid.len() / width;
-    let startpos = grid.iter().position(|c| *c == start).context("no start")?;
+    let startpos = grid.iter().position(|c| *c == start).some()?;
     let elevation = |pos| match grid[pos] {
         b'S' => b'a',
         b'E' => b'z',
@@ -42,7 +43,7 @@ fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day12.txt")?;
     let start = std::time::Instant::now();
 
-    let width = input.lines().next().context("no line")?.len();
+    let width = input.lines().next().some()?.len();
     let grid = input.lines().join("").into_bytes();
     println!("part1: {}", bfs(&grid, width, b'S', b'E', true)?);
     println!("part2: {}", bfs(&grid, width, b'E', b'a', false)?);

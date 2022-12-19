@@ -10,14 +10,14 @@ fn rolling_distinct_windows(s: &[u8], n: usize) -> impl Iterator<Item = (&[u8], 
         }
         in_window[s[i] as usize] += 1;
         count += (in_window[s[i] as usize] == 1) as usize;
-        (i >= n - 1).then(|| (&s[i+1-n..i+1], count))
+        (i >= n - 1).then(|| (&s[i + 1 - n..i + 1], count))
     })
 }
 
 fn main() -> Result<()> {
     let input = std::fs::read_to_string("inputs/day06.txt")?;
     let start = std::time::Instant::now();
-    
+
     let bytes = input.trim().as_bytes();
     let p1 = rolling_distinct_windows(bytes, 4).position(|(_, c)| c == 4);
     let p2 = rolling_distinct_windows(bytes, 14).position(|(_, c)| c == 14);
