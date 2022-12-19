@@ -65,38 +65,59 @@ impl Execution {
         }
     }
 
-    // Computes how many resources we mine given initial robots and assuming we
-    // build an extra robot each minute for the first extra_robots minutes.
-    fn max_mining(&self, resource: usize, extra_robots: u32, time_left: u32) -> u32 {
-        let b = self.robots[resource];
-        let x = extra_robots.min(time_left);
-        // b + (b + 1) + (b + 2) + ... + (b + x - 1) + (b + x) + ... + (b + x)
-        //       x*(2b + x - 1) / 2                  |    (b + x) * (m - x)
-        self.resources[resource] + x * (2 * b + x - 1) / 2 + (b + x) * (time_left - x)
-    }
-
     pub fn geode_lower_bound(&self, bp: &Blueprint, max_minutes: u32) -> u32 {
-        assert!(self.minutes <= max_minutes);
-        let ore_afford = self.resources[ORE] / bp.ore_costs[GEODE];
-        let obs_afford = self.resources[OBSIDIAN] / bp.geode_obsidian_cost;
-        self.max_mining(GEODE, ore_afford.min(obs_afford), max_minutes - self.minutes)
+        // We only construct geode bots.
+        let mut robots = self.robots;
+        let mut resources = self.resources;
+        for _m in self.minutes..max_minutes {
+            let new_bot = resources[ORE] >= bp.ore_costs[GEODE] && resources[OBSIDIAN] >= bp.geode_obsidian_cost;
+            for r in 0..4 {
+                resources[r] += robots[r];
+            }
+            resources[ORE] -= bp.ore_costs[GEODE] * new_bot as u32;
+            resources[OBSIDIAN] -= new_bot as u32 * bp.geode_obsidian_cost;
+            robots[GEODE] += new_bot as u32;
+        }
+        
+        resources[GEODE]
     }
 
     pub fn geode_upper_bound(&self, bp: &Blueprint, max_minutes: u32) -> u32 {
-        // Let's first upper bound how much ore we could ultimately have, by
-        // assuming we could go into debt, and always building ore machines if
-        // they'd pay off for themselves, which is after cost + 1 minutes.
-        // Then, again allowing debt, spend all this ore on clay, which in turn
-        // gets spent on obsidian and geodes, ignoring ore costs.
-        let m = max_minutes - self.minutes;
-        let extra_ore_bots = m.saturating_sub(bp.ore_costs[ORE] + 1);
-        let max_ore = self.max_mining(ORE, extra_ore_bots, m) - extra_ore_bots * bp.ore_costs[ORE];
-        let max_clay = self.max_mining(CLAY, max_ore / bp.ore_costs[CLAY], m);
-        let max_obsidian = self.max_mining(OBSIDIAN, max_clay / bp.obsidian_clay_cost, m);
-        self.max_mining(GEODE, max_obsidian / bp.geode_obsidian_cost, m)
+        // We greedily build robots, but the costs for one type of robot are
+        // not subtracted from the pool of resources of the other robots, and we
+        // can build multiple robot types at once.
+        let mut robots = self.robots;
+        let mut ores_for = [self.resources[0]; 4];
+        let [_, mut clay, mut obsidian, mut geodes] = self.resources;
+        for _m in self.minutes..max_minutes {
+            let new_bot = [
+                ores_for[ORE] >= bp.ore_costs[ORE],
+                ores_for[CLAY] >= bp.ore_costs[CLAY],
+                ores_for[OBSIDIAN] >= bp.ore_costs[OBSIDIAN] && clay >= bp.obsidian_clay_cost,
+                ores_for[GEODE] >= bp.ore_costs[GEODE] && obsidian >= bp.geode_obsidian_cost,
+            ];
+
+            for r in 0..4 {
+                ores_for[r] += robots[ORE] - new_bot[r] as u32 * bp.ore_costs[r];
+            }
+            clay += robots[CLAY] - new_bot[OBSIDIAN] as u32 * bp.obsidian_clay_cost;
+            obsidian += robots[OBSIDIAN] - new_bot[GEODE] as u32 * bp.geode_obsidian_cost;
+            geodes += robots[GEODE];
+
+            for r in 0..4 {
+                robots[r] += new_bot[r] as u32;
+            }
+        }
+
+        geodes
     }
 
-    pub fn build_robot(&self, resource: usize, bp: &Blueprint, max_minutes: u32) -> Option<Execution> {
+    pub fn build_robot(
+        &self,
+        resource: usize,
+        bp: &Blueprint,
+        max_minutes: u32,
+    ) -> Option<Execution> {
         // Don't build if we're already gathering enough to sustain the factory.
         if resource == ORE && self.robots[ORE] >= bp.max_ore_cost
             || resource == CLAY && self.robots[CLAY] >= bp.obsidian_clay_cost
