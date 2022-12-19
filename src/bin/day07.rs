@@ -1,6 +1,5 @@
-use hashbrown::HashMap;
-
 use anyhow::{bail, Context, Ok, Result};
+use hashbrown::HashMap;
 use slotmap::{new_key_type, SecondaryMap, SlotMap};
 
 new_key_type! { struct DirKey; }
@@ -36,11 +35,11 @@ fn main() -> Result<()> {
             &["$", "cd", "/"] => path.clear(),
             &["$", "cd", ".."] => drop(path.pop()),
             &["$", "cd", dir] => path.push(*dirs[cwd].children.get(dir).context("no such dir")?),
-            &["$", "ls"] => {}
+            &["$", "ls"] => {},
             &["dir", dir] => {
                 let child = dirs.insert(Directory::default());
                 dirs[cwd].children.insert(dir, child);
-            }
+            },
             &[num, dir] => dirs[cwd].files.push((dir, num.parse()?)),
             _ => bail!("unexpected command {command:?}"),
         }

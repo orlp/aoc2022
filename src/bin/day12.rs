@@ -1,8 +1,9 @@
+use std::collections::VecDeque;
+
 use anyhow::{bail, Ok, Result};
 use aoc2022::OptionSomeExt;
 use hashbrown::HashSet;
 use itertools::Itertools;
-use std::collections::VecDeque;
 
 fn bfs(grid: &[u8], width: usize, start: u8, target: u8, forwards: bool) -> Result<usize> {
     let height = grid.len() / width;

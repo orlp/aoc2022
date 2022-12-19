@@ -1,5 +1,5 @@
 use anyhow::{Ok, Result};
-use aoc2022::{RegexExtract, OptionSomeExt};
+use aoc2022::{OptionSomeExt, RegexExtract};
 use regex::Regex;
 
 // 0 = Rock, 1 = Paper, 2 = Scissor, (k + 1) mod 3 thus defeats k.
