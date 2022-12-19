@@ -26,7 +26,7 @@ fn bfs(grid: &[u8], width: usize, start: u8, target: u8, forwards: bool) -> Resu
                 if nx < width && ny < height && !seen.contains(&npos) {
                     let back = elevation(pos) <= elevation(npos) + 1;
                     let forth = elevation(npos) <= elevation(pos) + 1;
-                    if forwards && forth || !forwards && back {
+                    if !forwards && back || forwards && forth {
                         to_visit.push_back((npos, steps + 1));
                         seen.insert(npos);
                     }
