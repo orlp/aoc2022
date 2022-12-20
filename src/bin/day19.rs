@@ -87,6 +87,7 @@ impl Execution {
             res[OBS] -= new_bot as u32 * bp.geode_obsidian_cost;
             robots[GEODE] += new_bot as u32;
         }
+
         res[GEODE]
     }
 
@@ -121,7 +122,7 @@ impl Execution {
     }
 
     pub fn build_robot(&self, resource: usize, bp: &Blueprint, max_mins: u32) -> Option<Execution> {
-        let have_enough = match resource {
+        let have_enough_already = match resource {
             ORE => self.robots[ORE] >= bp.max_ore_cost,
             CLAY => self.robots[CLAY] >= bp.obsidian_clay_cost,
             OBS => self.robots[OBS] >= bp.geode_obsidian_cost,
@@ -146,7 +147,7 @@ impl Execution {
         }
         ret.minutes += delay;
         ret.robots[resource] += 1;
-        (!have_enough && ret.minutes <= max_mins).then_some(ret)
+        (!have_enough_already && ret.minutes <= max_mins).then_some(ret)
     }
 }
 
