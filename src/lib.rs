@@ -150,3 +150,4 @@ impl<P: Eq, T> PartialEq for Priority<P, T> {
 }
 
 impl<P: Eq, T> Eq for Priority<P, T> { }
+
