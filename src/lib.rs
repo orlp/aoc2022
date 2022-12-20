@@ -4,11 +4,16 @@ use std::fmt;
 
 use regex::{CaptureMatches, Captures, Regex};
 
+pub mod treap;
+
 fn extract_from_capture<'t, const N: usize>(caps: Captures<'t>) -> (&'t str, [&'t str; N]) {
     let mut participating = caps.iter().flatten();
     let whole_match = participating.next().unwrap().as_str();
     let captured = [0; N].map(|_| participating.next().unwrap().as_str());
-    assert!(participating.next().is_none(), "too many participating capture groups");
+    assert!(
+        participating.next().is_none(),
+        "too many participating capture groups"
+    );
     (whole_match, captured)
 }
 
@@ -149,5 +154,4 @@ impl<P: Eq, T> PartialEq for Priority<P, T> {
     }
 }
 
-impl<P: Eq, T> Eq for Priority<P, T> { }
-
+impl<P: Eq, T> Eq for Priority<P, T> {}

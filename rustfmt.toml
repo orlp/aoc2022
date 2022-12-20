@@ -1,0 +1,13 @@
+unstable_features = true
+
+# Fallback when Cargo.toml edition is not set.
+edition = "2021"
+
+# Compatible with style guide and rustfmt defaults.
+use_field_init_shorthand = true
+group_imports = "StdExternalCrate"    # Unstable.
+imports_granularity = "Module"        # Unstable.
+blank_lines_upper_bound = 2           # Unstable.
+
+# Departure from style guide.
+match_block_trailing_comma = true     # Unstable.
