@@ -1,0 +1,2 @@
+[env.'cfg(all(target_os = "windows"))']
+Z3_SYS_Z3_HEADER = "z3/include"
