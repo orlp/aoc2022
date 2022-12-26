@@ -16,36 +16,37 @@ struct Valve<'s> {
 struct State {
     pressure: u32,
     opened: u64,
-    pos: [usize; 2],
+    pos: [u16; 2],
     time: [u32; 2],
 }
 
 impl State {
-    fn upper_bound(&self, greedy_best_valves: &[Vec<(usize, u32, u32)>]) -> u32 {
+    fn upper_bound(&self, best_valves: &[Vec<(usize, u32, u32)>]) -> u32 {
         let [mut max_t, mut min_t] = self.time;
+        let mut opened = self.opened;
         let mut bound = self.pressure;
         'next_valve: loop {
-            for (i, mindist, f) in &greedy_best_valves[max_t as usize] {
-                if self.opened & (1 << i) == 0 {
-                    max_t -= mindist;
+            for (i, min_dist, f) in &best_valves[max_t as usize] {
+                if opened & (1 << i) == 0 {
+                    max_t -= min_dist;
                     bound += f * max_t as u32;
                     if max_t < min_t {
                         (min_t, max_t) = (max_t, min_t);
                     }
+                    opened |= 1 << i;
                     continue 'next_valve;
                 }
             }
-
             return bound;
         }
     }
 }
 
 fn max_pressure_release(
-    start: usize,
-    edges: &[Vec<(usize, u32)>],
+    start: u16,
+    edges: &[Vec<(u16, u32)>],
     flows: &[u32],
-    greedy_best_valves: &[Vec<(usize, u32, u32)>],
+    best_valves: &[Vec<(usize, u32, u32)>],
     time: [u32; 2],
 ) -> u32 {
     let init = State {
@@ -55,9 +56,9 @@ fn max_pressure_release(
         time,
     };
 
-    let mut seen = HashSet::new();
+    let mut seen = HashSet::with_capacity(1024);
     let mut best = 0;
-    let mut paths = BinaryHeap::new();
+    let mut paths = BinaryHeap::with_capacity(1024);
     paths.push(Priority(u32::MAX, init));
     while let Some(Priority(upper, cur)) = paths.pop() {
         if upper <= best {
@@ -68,11 +69,11 @@ fn max_pressure_release(
             continue;
         }
 
-        for (next, edge_len) in &edges[cur.pos[0]] {
+        for (next, edge_len) in &edges[cur.pos[0] as usize] {
             if cur.time[0] > *edge_len && cur.opened & (1 << next) == 0 {
                 let new_time = cur.time[0] - edge_len;
                 let mut next_state = State {
-                    pressure: cur.pressure + flows[*next] * new_time,
+                    pressure: cur.pressure + flows[*next as usize] * new_time,
                     opened: cur.opened | (1 << *next),
                     pos: [*next, cur.pos[1]],
                     time: [new_time, cur.time[1]],
@@ -82,7 +83,7 @@ fn max_pressure_release(
                     next_state.time.swap(0, 1);
                 }
                 best = best.max(next_state.pressure);
-                let upper = next_state.upper_bound(greedy_best_valves);
+                let upper = next_state.upper_bound(best_valves);
                 if upper > best {
                     paths.push(Priority(upper, next_state));
                 }
@@ -137,35 +138,32 @@ fn main() -> Result<()> {
             let dist = dists[from + to * n];
             let valid = (from == ids["AA"] || valves[from].flow > 0 && valves[to].flow > 0)
                 && dist < u32::MAX;
-            valid.then_some((to, dist + 1))
+            valid.then_some((to as u16, dist + 1))
         });
         nonzero_flow
-            .sorted_by_key(|(to, _)| Reverse(valves[*to].flow))
+            .sorted_by_key(|(to, _)| Reverse(valves[*to as usize].flow))
             .collect_vec()
     });
+
     let edges = direct_connections.collect_vec();
     let flows = valves.iter().map(|v| v.flow).collect_vec();
-    let greedy_best_valves = (0..=30)
+    let best_valves: Vec<Vec<_>> = (0..=30)
         .map(|t| {
             // Order valves by payoff given our remaining time t.
             let iflows = flows.iter().copied().enumerate();
-            let mut order = iflows
-                .map(|(i, f)| {
-                    let mindist = (0..n)
-                        .filter(|j| i != *j && valves[*j].flow > 0)
-                        .map(|j| dists[i + j * n] + 1)
-                        .min()
-                        .unwrap();
-                    (i, mindist, f)
+            iflows
+                .flat_map(|(i, f)| {
+                    let nonzero_neighbors = (0..n).filter(|j| i != *j && valves[*j].flow > 0);
+                    let nonzero_dists = nonzero_neighbors.map(|j| dists[i + j * n] + 1);
+                    let min_dist = nonzero_dists.min().unwrap();
+                    (t > min_dist).then_some((i, min_dist, f))
                 })
-                .collect_vec();
-            order.sort_by_key(|(_i, d, f)| Reverse(f * (t - d)));
-            order.retain(|(_i, d, f)| t > *d && *f > 0);
-            order
+                .sorted_by_key(|(_i, d, f)| Reverse(f * (t - d)))
+                .collect()
         })
-        .collect_vec();
-    let part1 = max_pressure_release(ids["AA"], &edges, &flows, &greedy_best_valves, [30, 0]);
-    let part2 = max_pressure_release(ids["AA"], &edges, &flows, &greedy_best_valves, [26, 26]);
+        .collect();
+    let part1 = max_pressure_release(ids["AA"] as u16, &edges, &flows, &best_valves, [30, 0]);
+    let part2 = max_pressure_release(ids["AA"] as u16, &edges, &flows, &best_valves, [26, 26]);
 
     println!("part1: {part1}");
     println!("part2: {part2}");
