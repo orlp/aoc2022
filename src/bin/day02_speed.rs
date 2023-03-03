@@ -28,6 +28,7 @@ fn main() -> Result<()> {
     let mut part1 = ints.len() as u32;
     let mut part2 = ints.len() as u32;
     for u in ints {
+        let u = u.to_le();
         let o = u.wrapping_mul(1887065750_u32) >> 27;
         part1 += (*u == 173678658) as u32 + ((475903013 >> o) & 7);
         part2 += (*u == 173678658) as u32 + ((224201846 >> o) & 7);
